@@ -1,0 +1,29 @@
+<idea-plugin>
+    <id>com.tradetested.quarkus-intellij-plugin</id>
+    <name>Quarkus Testsocket</name>
+    <vendor email="dane@tradetested.co.nz" url="https://www.tradetested.co.nz">Trade Tested</vendor>
+
+    <description><![CDATA[
+    Run Continuous Testing on Quarkus via IntelliJ.
+    ]]></description>
+
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+    <depends>JUnit</depends>
+    <depends>org.jetbrains.kotlin</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <testFramework implementation="com.tradetested.quarkus.intellij.testsocket.ContinuousTestFramework" order="first"/>
+        <programRunner implementation="com.tradetested.quarkus.intellij.testsocket.ContinuousTestProgramRunner" order="first"/>
+        <configurationType implementation="com.tradetested.quarkus.intellij.testsocket.configuration.ContinuousTestConfigurationType" order="first"/>
+        <runConfigurationProducer implementation="com.tradetested.quarkus.intellij.testsocket.producer.AllInPackageConfigurationProducer" order="first"/>
+        <runConfigurationProducer implementation="com.tradetested.quarkus.intellij.testsocket.producer.TestInClassConfigurationProducer" order="first"/>
+        <runConfigurationProducer implementation="com.tradetested.quarkus.intellij.testsocket.producer.KotlinTestConfigurationProducer" order="first"/>
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+</idea-plugin>
