@@ -41,6 +41,9 @@ class ContinuousTestProgramRunner : ProgramRunner<RunnerSettings> {
             val result = AtomicReference<RunContentDescriptor>()
             ApplicationManager.getApplication().invokeAndWait {
                 val contentBuilder = RunContentBuilder(executionResult, environment)
+                if (state is ContinuousTestRunProfileState) {
+                    contentBuilder.addAction(state.rerunAction)
+                }
 //            if (state !is JavaCommandLineState || (state as JavaCommandLineState).shouldAddJavaProgramRunnerActions()) {
 //                DefaultJavaProgramRunner.addDefaultActions(contentBuilder, executionResult, state is JavaCommandLine)
 //            }

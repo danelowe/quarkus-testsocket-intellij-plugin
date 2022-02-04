@@ -22,8 +22,15 @@ import com.tradetested.quarkus.testsocket.spi.command.TestClass
 import com.tradetested.quarkus.testsocket.spi.command.TestMethod
 import com.tradetested.quarkus.testsocket.spi.command.TestPackage
 
-class ContinuousTestRunProfileState(private val configuration: ContinuousTestRunConfiguration, environment: ExecutionEnvironment) :
+
+class ContinuousTestRunProfileState(
+    private val configuration: ContinuousTestRunConfiguration,
+    environment: ExecutionEnvironment,
+    private val rerunFailed: Boolean = false
+) :
     TestObject(configuration, environment), PossiblyDumbAware, DumbAware {
+
+    lateinit var rerunAction: RerunFailedTestsAction
 
     override fun execute(executor: Executor, runner: ProgramRunner<*>): ExecutionResult {
         val testConsoleProperties = getConfiguration().createTestConsoleProperties(executor)
@@ -38,7 +45,8 @@ class ContinuousTestRunProfileState(private val configuration: ContinuousTestRun
         val result = DefaultExecutionResult(consoleView, handler)
         val manager = ContinuousTestWebSocketManager(consoleView  as SMTRunnerConsoleView, client, handler)
         consoleView.attachToProcess(handler)
-        manager.runTests(command)
+        manager.start(command)
+        rerunAction = RerunFailedTestsAction(manager, consoleView, testConsoleProperties)
 
         return result
     }

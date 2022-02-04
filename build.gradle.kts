@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.tradetested:quarkus-testsocket-spi:1.0.0")
+    implementation("com.tradetested:quarkus-testsocket-spi:1.0.2")
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/

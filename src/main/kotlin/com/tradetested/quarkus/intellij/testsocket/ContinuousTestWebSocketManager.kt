@@ -19,15 +19,15 @@ class ContinuousTestWebSocketManager(
     private val rootNode = viewer.testsRootNode
     private val nodes = mutableMapOf<String, SMTestProxy>()
     private val publisher = consoleView.properties.project.messageBus.syncPublisher(SMTRunnerEventsListener.TEST_STATUS)
-    fun runTests(command: Command) {
+    fun start(command: Command) {
         handler.startNotify();
         try {
             client.open()
-            client.send(command.toString())
+            run(command)
             client.onTextFrame {
                 val event = format.decodeFromString<TestEvent>(it)
                 when (event) {
-                    is RunStartedEvent -> runStarted(event)
+                    is RunStartedEvent -> runStarted()
                     is TestStartedEvent -> testStarted(event)
                     is TestCompleteEvent -> testComplete(event)
                     is RunCompleteEvent -> runComplete(event)
@@ -39,7 +39,11 @@ class ContinuousTestWebSocketManager(
         }
     }
 
-    private fun runStarted(event: RunStartedEvent) {
+    fun run(command: Command) {
+        client.send(command.toString())
+    }
+
+    private fun runStarted() {
         nodes.clear()
         rootNode.children.clear()
         rootNode.setSuiteStarted()
