@@ -6,5 +6,5 @@ import com.tradetested.quarkus.intellij.testsocket.configuration.ContinuousTestC
 import com.tradetested.quarkus.intellij.testsocket.configuration.ContinuousTestRunConfiguration
 
 class TestInClassConfigurationProducer : AbstractInClassConfigurationProducer<ContinuousTestRunConfiguration>() {
-    override fun getConfigurationFactory() = ContinuousTestConfigurationFactory(ContinuousTestConfigurationType())
+    override fun getConfigurationFactory() = ContinuousTestConfigurationFactory(ContinuousTestConfigurationType.instance)
 }

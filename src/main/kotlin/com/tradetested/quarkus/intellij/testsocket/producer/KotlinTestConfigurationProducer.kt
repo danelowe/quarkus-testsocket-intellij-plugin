@@ -47,6 +47,10 @@ class KotlinTestConfigurationProducer: RunConfigurationProducer<JUnitConfigurati
             return false
         }
 
+        if (configuration.persistentData.category != "quarkus_ct") {
+            return false
+        }
+
         return settingsMatchTemplate(configuration, context)
     }
 
@@ -82,6 +86,8 @@ class KotlinTestConfigurationProducer: RunConfigurationProducer<JUnitConfigurati
             return false
         }
 
+        configuration.persistentData.setCategoryName("quarkus_ct")
+
         val method = getTestMethod(leaf)
         if (method != null) {
             configuration.beMethodConfiguration(method.toLocation())
@@ -97,6 +103,7 @@ class KotlinTestConfigurationProducer: RunConfigurationProducer<JUnitConfigurati
             configuration.setModule(module)
             return true
         }
+
 
         return false
     }

@@ -18,8 +18,8 @@ import com.intellij.refactoring.listeners.RefactoringElementListener
 import com.intellij.util.ui.UIUtil
 import com.tradetested.quarkus.intellij.testsocket.configuration.ContinuousTestRunConfiguration
 import com.tradetested.quarkus.testsocket.spi.command.Command
-import com.tradetested.quarkus.testsocket.spi.command.TestMethod
 import com.tradetested.quarkus.testsocket.spi.command.TestClass
+import com.tradetested.quarkus.testsocket.spi.command.TestMethod
 import com.tradetested.quarkus.testsocket.spi.command.TestPackage
 
 class ContinuousTestRunProfileState(private val configuration: ContinuousTestRunConfiguration, environment: ExecutionEnvironment) :
@@ -64,9 +64,10 @@ class ContinuousTestRunProfileState(private val configuration: ContinuousTestRun
     private val command : Command by lazy {
         val data = configuration.persistentData
         when (data.TEST_OBJECT) {
-            "method" -> TestMethod(data.mainClassName, data.methodName)
-            "class" -> TestClass(data.mainClassName)
-            "package" -> TestPackage(data.packageName)
+            JUnitConfiguration.TEST_METHOD -> TestMethod(data.mainClassName, data.methodName)
+            JUnitConfiguration.TEST_CLASS -> TestClass(data.mainClassName)
+            JUnitConfiguration.TEST_PACKAGE -> TestPackage(data.packageName)
+            JUnitConfiguration.TEST_DIRECTORY -> TestPackage(data.packageName)
             else -> throw IllegalStateException("Cannot run ${data.TEST_OBJECT}")
 
         }

@@ -11,7 +11,10 @@ data class TestCompleteEvent(
     val log: List<String>,
     val duration: Long,
     val status: TestStatus,
+    val methodName: String? = null,
+    val className: String? = null,
     val details: TestDetails? = null,
+    val parentId: String,
 ) : TestEvent()
 
 @Suppress("PROVIDED_RUNTIME_TOO_LOW")

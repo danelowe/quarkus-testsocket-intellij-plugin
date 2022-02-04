@@ -5,7 +5,7 @@ import com.intellij.openapi.project.DumbAware
 import com.tradetested.quarkus.intellij.testsocket.Icons
 import javax.swing.Icon
 
-class ContinuousTestConfigurationType : ConfigurationType, DumbAware {
+class ContinuousTestConfigurationType private constructor() : ConfigurationType, DumbAware {
     override fun getDisplayName(): String = "Quarkus CT"
     override fun getConfigurationTypeDescription(): String = "Quarkus Continuous Testing"
     override fun getIcon(): Icon = Icons.Quarkus

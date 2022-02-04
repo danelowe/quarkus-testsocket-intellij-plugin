@@ -19,6 +19,7 @@
         <programRunner implementation="com.tradetested.quarkus.intellij.testsocket.ContinuousTestProgramRunner" order="first"/>
         <configurationType implementation="com.tradetested.quarkus.intellij.testsocket.configuration.ContinuousTestConfigurationType" order="first"/>
         <runConfigurationProducer implementation="com.tradetested.quarkus.intellij.testsocket.producer.AllInPackageConfigurationProducer" order="first"/>
+        <runConfigurationProducer implementation="com.tradetested.quarkus.intellij.testsocket.producer.AllInDirectoryConfigurationProducer" order="first"/>
         <runConfigurationProducer implementation="com.tradetested.quarkus.intellij.testsocket.producer.TestInClassConfigurationProducer" order="first"/>
         <runConfigurationProducer implementation="com.tradetested.quarkus.intellij.testsocket.producer.KotlinTestConfigurationProducer" order="first"/>
     </extensions>

@@ -1,5 +1,6 @@
 package com.tradetested.quarkus.intellij.testsocket
 
+import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
 import com.intellij.execution.testframework.sm.runner.ui.SMTRunnerConsoleView
 import com.tradetested.quarkus.intellij.testsocket.events.*
@@ -17,6 +18,7 @@ class ContinuousTestWebSocketManager(
     private val viewer = consoleView.resultsViewer
     private val rootNode = viewer.testsRootNode
     private val nodes = mutableMapOf<String, SMTestProxy>()
+    private val publisher = consoleView.properties.project.messageBus.syncPublisher(SMTRunnerEventsListener.TEST_STATUS)
     fun runTests(command: Command) {
         handler.startNotify();
         try {
@@ -44,30 +46,60 @@ class ContinuousTestWebSocketManager(
         consoleView.clear()
         viewer.onTestingStarted(rootNode)
         viewer.onSuiteStarted(rootNode)
+        publisher.onTestingStarted(rootNode)
+        publisher.onSuiteStarted(rootNode)
+    }
+
+    private fun registerTestOrSuite(
+        id: String,
+        parentId: String?,
+        name: String,
+        className: String?,
+        methodName: String?
+    ) : SMTestProxy? {
+        if (className == null) {
+            // Have test classes directly in the root node, JUnit/ArchUnit etc should not appear in tree.
+            return null;
+        }
+        val node = SMTestProxy(name, methodName == null, "")
+        registerNode(id, node)
+        val parent = findNode(parentId)
+        parent.addChild(node)
+        node.setStarted()
+        viewer.onTestStarted(node)
+        publisher.onTestStarted(node)
+        checkComplete(parent)
+        return node
     }
 
     private fun testStarted(event: TestStartedEvent) {
-        if (event.className == null) {
-            // Have test classes directly in the root node, JUnit/ArchUnit etc should not appear in tree.
-            return;
-        }
-        val node = SMTestProxy(event.name, event.methodName == null, "")
-        registerNode(event.id, node)
-        val parent = findNode(event.parentId)
-        parent.addChild(node)
-        node.setStarted()
-        checkComplete(parent)
+        registerTestOrSuite(event.id, event.parentId, event.name, event.className, event.methodName)
     }
 
     private fun testComplete(event: TestCompleteEvent) {
-        val node = findNode(event.id)
+        var node = findNode(event.id)
+        if ((node == rootNode) && (event.className != null)) {
+            // If the test has been skipped, it may not have had a start event in order for it to be registered.
+            node = registerTestOrSuite(
+                event.id,
+                event.parentId,
+                event.methodName ?: event.className,
+                event.className,
+                event.methodName
+            ) ?: node
+        }
         node.setDuration(event.duration)
         event.log.forEach(node::addStdOutput)
         when (event.status) {
-            TestStatus.SUCCESSFUL -> node.setFinished()
+            TestStatus.SUCCESSFUL -> {
+                node.setFinished()
+                viewer.onTestFinished(node)
+                publisher.onTestFinished(node)
+            }
             TestStatus.ABORTED -> {
                 node.setTestIgnored(null, null)
                 viewer.onTestIgnored(node)
+                publisher.onTestIgnored(node)
             }
             TestStatus.FAILED -> {
                 if (event.details == null) {
@@ -83,9 +115,9 @@ class ContinuousTestWebSocketManager(
                         )
                         TestDetailsType.ERROR -> node.setTestFailed(details.message, details.stackTrace, true)
                     }
-                    viewer.onTestFailed(node)
                 }
-
+                viewer.onTestFailed(node)
+                publisher.onTestFailed(node)
             }
         }
         checkComplete(node.parent)
@@ -95,7 +127,19 @@ class ContinuousTestWebSocketManager(
         rootNode.setDuration(event.duration)
         rootNode.setFinished()
         viewer.onBeforeTestingFinished(rootNode)
-        viewer.onTestingStarted(rootNode)
+        publisher.onBeforeTestingFinished(rootNode)
+        abortChildren(rootNode)
+        viewer.onTestFinished(rootNode)
+        publisher.onTestFinished(rootNode)
+    }
+
+    private fun abortChildren(node: SMTestProxy) {
+        if (node.isInProgress) {
+            node.setTestIgnored(null, null)
+            viewer.onTestIgnored(node)
+            publisher.onTestIgnored(node)
+            node.children.forEach { abortChildren(it) }
+        }
     }
 
     private fun noTests(event: NoTestsEvent) {
@@ -107,10 +151,17 @@ class ContinuousTestWebSocketManager(
         if (node == null) {
             return
         }
+        if (node.children?.all { it.isIgnored } == true) {
+            node.setTestIgnored(null, null)
+            viewer.onTestIgnored(node)
+            publisher.onTestIgnored(node)
+        }
         if (node.children?.any { it.isInProgress } != false) {
             node.setStarted()
         } else {
             node.setFinished()
+            viewer.onTestFinished(node)
+            publisher.onTestFinished(node)
         }
         checkComplete(node.parent)
     }

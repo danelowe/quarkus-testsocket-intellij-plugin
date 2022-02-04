@@ -62,8 +62,8 @@ class WebSocketClient(uri: String) {
     }
 
     fun close() {
-        channel.writeAndFlush(CloseWebSocketFrame())
-        channel.closeFuture().sync()
+        ch?.writeAndFlush(CloseWebSocketFrame())
+        ch?.closeFuture()?.sync()
         group.shutdownGracefully()
         this.closeHandlers.forEach { it() }
     }
