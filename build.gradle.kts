@@ -9,6 +9,17 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenLocal()
+    maven {
+        url = uri("https://gitlab.com/api/v4/groups/tradetested/-/packages/maven")
+        name = "GitLab"
+        credentials(HttpHeaderCredentials::class) {
+            name = "Deploy-Token"
+            value = System.getenv("TT_GITLAB_PACKAGE_DEPLOY_TOKEN")
+        }
+        authentication {
+            create<HttpHeaderAuthentication>("header")
+        }
+    }
     mavenCentral()
 }
 
