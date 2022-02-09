@@ -42,7 +42,9 @@ class ContinuousTestProgramRunner : ProgramRunner<RunnerSettings> {
             ApplicationManager.getApplication().invokeAndWait {
                 val contentBuilder = RunContentBuilder(executionResult, environment)
                 if (state is ContinuousTestRunProfileState) {
-                    contentBuilder.addAction(state.rerunAction)
+                    state.actions.forEach {
+                        contentBuilder.addAction(it)
+                    }
                 }
 //            if (state !is JavaCommandLineState || (state as JavaCommandLineState).shouldAddJavaProgramRunnerActions()) {
 //                DefaultJavaProgramRunner.addDefaultActions(contentBuilder, executionResult, state is JavaCommandLine)

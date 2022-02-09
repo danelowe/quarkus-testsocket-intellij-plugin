@@ -45,7 +45,7 @@ class RerunFailedTestsAction(
         ActionsBundle.message("action.RerunFailedTests.text")
     ) {
         override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState =
-            ContinuousTestRunProfileState(configuration, environment, true)
+            ContinuousTestRunProfileState(configuration, environment)
         override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> = configuration.configurationEditor
     }
 }

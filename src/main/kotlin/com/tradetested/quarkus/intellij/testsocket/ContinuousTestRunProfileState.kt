@@ -10,6 +10,8 @@ import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.testframework.TestConsoleProperties
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil
 import com.intellij.execution.testframework.sm.runner.ui.SMTRunnerConsoleView
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.PossiblyDumbAware
 import com.intellij.openapi.util.Disposer
@@ -26,11 +28,13 @@ import com.tradetested.quarkus.testsocket.spi.command.TestPackage
 class ContinuousTestRunProfileState(
     private val configuration: ContinuousTestRunConfiguration,
     environment: ExecutionEnvironment,
-    private val rerunFailed: Boolean = false
 ) :
     TestObject(configuration, environment), PossiblyDumbAware, DumbAware {
+    var started = false
+    var brokenOnly = false
+    var liveReload = false
 
-    lateinit var rerunAction: RerunFailedTestsAction
+    lateinit var actions: Collection<AnAction>
 
     override fun execute(executor: Executor, runner: ProgramRunner<*>): ExecutionResult {
         val testConsoleProperties = getConfiguration().createTestConsoleProperties(executor)
@@ -43,10 +47,15 @@ class ContinuousTestRunProfileState(
         val client = WebSocketClient(configuration.endpoint)
         val handler = WebSocketProcessHandler(client)
         val result = DefaultExecutionResult(consoleView, handler)
-        val manager = ContinuousTestWebSocketManager(consoleView  as SMTRunnerConsoleView, client, handler)
+        val manager = ContinuousTestWebSocketManager(this, consoleView  as SMTRunnerConsoleView, client, handler)
         consoleView.attachToProcess(handler)
         manager.start(command)
-        rerunAction = RerunFailedTestsAction(manager, consoleView, testConsoleProperties)
+        actions = listOf(
+            RerunFailedTestsAction(manager, consoleView, testConsoleProperties),
+            StartedAction(this, manager),
+            BrokenOnlyAction(this, manager),
+            LiveReloadAction(this, manager),
+        )
 
         return result
     }

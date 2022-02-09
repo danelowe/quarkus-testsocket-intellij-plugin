@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 import java.net.ConnectException
 
 class ContinuousTestWebSocketManager(
+    private val state: ContinuousTestRunProfileState,
     private val consoleView: SMTRunnerConsoleView,
     private val client: WebSocketClient,
     private val handler: WebSocketProcessHandler
@@ -32,6 +33,11 @@ class ContinuousTestWebSocketManager(
                     is TestCompleteEvent -> testComplete(event)
                     is RunCompleteEvent -> runComplete(event)
                     is NoTestsEvent -> noTests(event)
+                    is StateEvent -> {
+                        state.started = event.started
+                        state.liveReload = event.liveReload
+                        state.brokenOnly = event.brokenOnly
+                    }
                 }
             }
         } catch (e: ConnectException) {
